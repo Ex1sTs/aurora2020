@@ -43,5 +43,13 @@ export default class EffectsFactory {
         effect.anims.setRepeat(-1);
     }
 
+    makeOneEffect(effectName, x, y, params = {}) {
+        let effect = new Phaser.Physics.Arcade.Sprite(this.scene, x, y, effectName, 0);
+        this.scene.physics.world.enable(effect);
+        this.scene.add.existing(effect);
+        // todo: make specific animation loader for vfx
+        effect.anims.play(effectName, true)
+        effect.anims.setRepeat(1);
+    }
 
 }
