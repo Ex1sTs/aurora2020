@@ -18,6 +18,7 @@ import ProcedurallyGeneratedScene from "./procedurally-generated-scene";
 import SteeringUnionGroupScene from './steering-union-group-scene';
 import EffectsScene from './effects-scene'
 import SlimeRushScene from "./slime-rush";
+import SceneExists from "./scene-Ex1sTs";
 
 const scenes = [
     ['StartingScene', StartingScene],
@@ -35,7 +36,8 @@ const scenes = [
     ['ExplorationAndShadowingScene', ExplorationAndShadowingScene],
     ['MinerScene', MinerScene],
     ['ProcedurallyGeneratedScene', ProcedurallyGeneratedScene],
-    ['SteeringUnionGroupScene', SteeringUnionGroupScene]
+    ['SteeringUnionGroupScene', SteeringUnionGroupScene],
+    ['SceneExists', SceneExists]
 ];
 
 let MenuScene = new Phaser.Class({
