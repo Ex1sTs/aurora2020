@@ -56,5 +56,18 @@ export default class Npc extends Phaser.Physics.Arcade.Sprite {
     cntLess(steps) {
         return this.cnt < steps;
     }
+
+    damage()
+    {
+        if (this.hp > 0) {
+            this.hp = this.hp - 1
+        } else {
+            this.nextLocation = null
+            this.alive = false;
+            //this.anims.play(, true);
+            this.visible = false;
+            this.body.destroy()
+        }
+    }
 }
 

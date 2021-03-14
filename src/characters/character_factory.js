@@ -5,10 +5,12 @@ import cyberpunkConfigJson from "../../assets/animations/cyberpunk.json";
 import slimeConfigJson from "../../assets/animations/slime.json";
 import mineConfigJson from '../../assets/animations/mine.json';
 import AnimationLoader from "../utils/animation-loader";
+import { Bullets, PlayerWithGun } from '../../../aurora2020(my)/src/characters/player_with_gun';
 
 import Mine from "./mine";
 import SmartSlime from './minerScene/smartSlime';
 import NPC from "../characters/npc";
+import UserControlled from "../ai/behaviour/user_controlled";
 
 export default class CharacterFactory {
 
@@ -52,7 +54,7 @@ export default class CharacterFactory {
             case 'blue':
             case 'yellow':
                 if (params.player)
-                    return this.buildPlayerCharacter(spriteSheetName, x, y, params);
+                    return this.buildPlayerCharacter(spriteSheetName, x, y, params.playerWithGun);
                 else {
                         return this.buildNPCCharacter(spriteSheetName, x, y, params);
                 }
@@ -73,12 +75,56 @@ export default class CharacterFactory {
         return character;
     }
 
+    addBulletsBehaviour(character) {
+        this.scene.bullets = new Bullets(this.scene);
+        if (this.scene.groundLayer) {
+            this.scene.physics.add.collider(this.scene.bullets, this.scene.groundLayer, (bullet) => {
+                bullet.setVisible(false);
+                bullet.setActive(false);
+            });
+        }
+        if (this.scene.otherLayer) {
+            this.scene.physics.add.collider(this.scene.bullets, this.scene.otherLayer, (bullet) => {
+                bullet.setVisible(false);
+                bullet.setActive(false);
+            });
+        }
+        const context = this;
+        this.scene.input.on('pointerdown', (pointer) => {
+            const {x, y} = character.bulletStartingPoint
+
+            character.lastTimeFired = (new Date()).getTime();
+
+            const vx = pointer.x + context.scene.cameras.main.scrollX - x;
+            const vy = pointer.y + context.scene.cameras.main.scrollY - y;
+
+            const BULLET_SPEED = 400
+            const mult = BULLET_SPEED / Math.sqrt(vx*vx + vy*vy)
+            this.scene.bullets.fireBullet(x, y, vx * mult, vy * mult, character);
+        });
+    }
+
     buildPlayerCharacter(spriteSheetName, x, y, params = {}) {
-        let character = new Player(this.scene, x, y, spriteSheetName, 2, params);
-        character.maxSpeed = 100;
-        character.setCollideWorldBounds(true);
-        character.cursors = this.scene.input.keyboard.createCursorKeys();
-        character.animationSets = this.animationLibrary.get('aurora');
+        const maxSpeed = 100;
+        let character;
+        if (params.playerWithGun) {
+            character = new PlayerWithGun(this.scene, x, y, spriteSheetName, 'gun');
+            const wasdCursorKeys = this.scene.input.keyboard.addKeys({
+                up:Phaser.Input.Keyboard.KeyCodes.W,
+                down:Phaser.Input.Keyboard.KeyCodes.S,
+                left:Phaser.Input.Keyboard.KeyCodes.A,
+                right:Phaser.Input.Keyboard.KeyCodes.D
+            });
+            character.addBehaviour(new UserControlled(150, wasdCursorKeys));
+            this.addBulletsBehaviour(character);
+        } else {
+            character = new Player(this.scene, x, y, spriteSheetName, 2, params);
+            character.setCollideWorldBounds(true);
+            character.cursors = this.scene.input.keyboard.createCursorKeys();
+        }
+        character.maxSpeed = maxSpeed;
+
+        character.animationSets = this.animationLibrary.get(spriteSheetName);
         //todo: not here
         character.footstepsMusic = this.scene.sound.add('footsteps', {
             mute: false,
